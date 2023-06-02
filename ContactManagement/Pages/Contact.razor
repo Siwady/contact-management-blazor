@@ -1,0 +1,61 @@
+﻿@page "/contact"
+@page "/contact/{id:int}"
+
+@using ContactManagement.Data.Models;
+@using ContactManagement.Services;
+
+@inject IContactService contactService;
+@inject NavigationManager navigation;
+
+<h3>@title</h3>
+
+<EditForm Model="contact" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <InputText class="form-control" @bind-Value="contact.Name"></InputText>
+        <ValidationMessage For="@(()=> contact.Name)"></ValidationMessage>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="contact.Email"></InputText>
+        <ValidationMessage For="@(()=> contact.Email)"></ValidationMessage>
+    </div>
+
+    <button class="btn btn-primary" type="submit">@btnText</button>
+    <a class="btn btn-warning" href="contacts">Back</a>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int id { get; set; } = 0;
+
+    string title = string.Empty;
+    string btnText = string.Empty;
+    ContactModel contact = new ContactModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(id != 0)
+        {
+            contact = await contactService.Get(id);
+            title = "Update Contact";
+            btnText = "Update";
+        } else
+        {
+            title = "Create Contact";
+            btnText = "Create";
+        }
+    }
+    private async Task OnValidSubmit()
+    {
+        ContactManagement.Data.Models.ContactModel? newContact = null;
+        if(id == 0)
+            newContact = await contactService.Create(contact); 
+        else
+            newContact = await contactService.Update(contact);
+
+        if (newContact != null)
+            navigation.NavigateTo("/contacts");
+    }
+}
